@@ -1,0 +1,19 @@
+test_metadata:
+  type: config
+  name: mapped aliases
+  description: Create map of aliases with subs with a s3 origin
+
+name: MappedAliasesDistrobution
+description: Create map of aliases with subs with a s3 origin
+
+aliases_map:
+  default:
+    - Fn::Sub: www.${DnsDomain}
+    - Fn::Sub: api.${DnsDomain}
+  prod:
+    - www.domain.tld
+    - api.domain.tld
+
+origins:
+  mys3bucket:
+    source: 's3'

@@ -1,0 +1,19 @@
+test_metadata:
+  type: config
+  name: config aliases
+  description: Aliases in a config list with alb origin
+
+name: ConfigAliasesDistrobution
+description: Aliases in a config list with alb origin
+
+aliases:
+  - www.${DnsDomain}
+  - api.${DnsDomain}
+
+origins:
+  myapploadbalancer:
+    source: loadbalancer
+    # http-only | match-viewer | https-only
+    protocol_policy: https-only
+    ssl_protocols:
+      - TLSv1.2

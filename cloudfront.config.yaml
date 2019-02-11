@@ -1,0 +1,30 @@
+# true | false
+enabled: true
+
+# http1.1 | http2
+http_version: http2
+
+ssl:
+  # acm | cloudfront | iam
+  type: cloudfront
+  # sni-only | vip
+  support_method: sni-only
+  # SSLv3 | TLSv1 | TLSv1_2016 | TLSv1.1_2016 | TLSv1.2_2018
+  minimum_protocol_version: TLSv1.2_2018
+
+behaviours:
+  default:
+    # GET, HEAD, OPTIONS, PUT, PATCH, POST, and DELETE
+    AllowedMethods:
+      - GET
+      - HEAD
+    Compress: true
+    TargetOriginId: mys3bucket
+    ForwardedValues:
+      Cookies:
+        Forward: none
+      QueryStrings: true
+      Headers:
+        - Host
+    # allow-all | redirect-to-https | https-only
+    ViewerProtocolPolicy: redirect-to-https
