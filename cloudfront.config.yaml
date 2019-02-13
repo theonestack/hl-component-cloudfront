@@ -23,7 +23,7 @@ behaviours:
     ForwardedValues:
       Cookies:
         Forward: none
-      QueryStrings: true
+      QueryString: true
       Headers:
         - Host
     # allow-all | redirect-to-https | https-only
