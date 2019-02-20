@@ -86,4 +86,19 @@ CloudFormation do
     Tags tags
   }
 
+  dns_records.each_with_index do |dns, index|
+    Route53_RecordSet("CloudfrontDns#{index}") do
+      HostedZoneName FnSub("#{dns}.${DnsDomain}")
+      Name dns
+      Type 'CNAME'
+      TTL '60'
+      ResourceRecords [FnGetAtt('Distribution', 'DomainName')]
+    end
+  end if defined? dns_records
+
+  Output('DomainName') do
+    Value(FnGetAtt('Distribution', 'DomainName'))
+    Export FnSub("${EnvironmentName}-#{component_name}-DomainName")
+  end
+
 end
