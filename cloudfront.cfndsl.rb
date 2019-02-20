@@ -34,12 +34,14 @@ CloudFormation do
       }
       origin[:S3OriginConfig] = { OriginAccessIdentity: FnSub("origin-access-identity/cloudfront/${#{id}OriginAccessIdentity}") }
 
+
     end
 
     distribution_config[:Origins] << origin
 
   end if (defined? origins) && (origins.any?)
 
+  distribution_config[:DefaultRootObject] = default_root_object if defined? default_root_object
   distribution_config[:HttpVersion] = http_version
   distribution_config[:Enabled] = enabled
   distribution_config[:PriceClass] = Ref('PriceClass')

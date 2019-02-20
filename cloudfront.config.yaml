@@ -1,5 +1,6 @@
 # true | false
 enabled: true
+#default_root_object: index.html
 
 # http1.1 | http2
 http_version: http2
@@ -19,12 +20,25 @@ behaviours:
       - GET
       - HEAD
     Compress: true
-    TargetOriginId: mys3bucket
+    TargetOriginId: s3bucket
     ForwardedValues:
       Cookies:
         Forward: none
       QueryString: true
-      Headers:
-        - Host
     # allow-all | redirect-to-https | https-only
     ViewerProtocolPolicy: redirect-to-https
+  # nondefaultcachebehaviours:
+  #   -
+  #     AllowedMethods:
+  #       - GET
+  #       - HEAD
+  #       - OPTIONS
+  #     Compress: true
+  #     TargetOriginId: s3bucket
+  #     ForwardedValues:
+  #       Cookies:
+  #         Forward: none
+  #       QueryString: false
+  #     # allow-all | redirect-to-https | https-only
+  #     ViewerProtocolPolicy: redirect-to-https
+  #     PathPattern: /index.html
