@@ -44,4 +44,4 @@ behaviours:
   #     PathPattern: /index.html
 
 # dns_records:
-#   - mycdn.${DomainName}
+#   - mycdn.${DnsDomain}
