@@ -15,26 +15,21 @@ CloudFormation do
       Id: id,
       DomainName: Ref("#{id}OriginDomainName")
     }
-
+    origin[:OriginPath] = config['origin_path'] if config.has_key?('origin_path')
     case config['source']
-    when 'loadbalancer'
-
+    when 'loadbalancer', 'apigateway'
       origin[:CustomOriginConfig] = { HTTPPort: '80', HTTPSPort: '443' }
       origin[:CustomOriginConfig][:OriginKeepaliveTimeout] = config["keep_alive_timeout"] if config.has_key?('keep_alive_timeout')
       origin[:CustomOriginConfig][:OriginReadTimeout] = config["read_timeout"] if config.has_key?('read_timeout')
       origin[:CustomOriginConfig][:OriginSSLProtocols] = config['ssl_policy'] if config.has_key?('ssl_policy')
       origin[:CustomOriginConfig][:OriginProtocolPolicy] = config['protocol_policy']
-
     when 's3'
-
       CloudFront_CloudFrontOriginAccessIdentity("#{id}OriginAccessIdentity") {
         CloudFrontOriginAccessIdentityConfig({
           Comment: FnSub("${EnvironmentName}-#{id}-CloudFrontOriginAccessIdentity")
         })
       }
       origin[:S3OriginConfig] = { OriginAccessIdentity: FnSub("origin-access-identity/cloudfront/${#{id}OriginAccessIdentity}") }
-
-
     end
 
     distribution_config[:Origins] << origin
