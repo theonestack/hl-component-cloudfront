@@ -41,6 +41,7 @@ CloudFormation do
   distribution_config[:Enabled] = enabled
   distribution_config[:PriceClass] = Ref('PriceClass')
   distribution_config[:WebACLId] = FnIf('WebACLEnabled', Ref('WebACL'), Ref('AWS::NoValue'))
+  distribution_config[:CustomErrorResponses] = custom_error_responses if defined? custom_error_responses
 
   # SSL Settings
   distribution_config[:ViewerCertificate] = {}

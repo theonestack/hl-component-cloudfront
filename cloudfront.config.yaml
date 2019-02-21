@@ -5,6 +5,13 @@ enabled: true
 # http1.1 | http2
 http_version: http2
 
+# custom_error_responses:
+#   -
+#     ErrorCachingMinTTL: 0
+#     ErrorCode: 404
+#     ResponseCode: 200
+#     ResponsePagePath: /index.html
+
 ssl:
   # acm | cloudfront | iam
   type: cloudfront
