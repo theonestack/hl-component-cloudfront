@@ -49,3 +49,6 @@ behaviours:
   #     # allow-all | redirect-to-https | https-only
   #     ViewerProtocolPolicy: redirect-to-https
   #     PathPattern: /index.html
+
+# dns_records:
+#   - mycdn.${DnsDomain}
