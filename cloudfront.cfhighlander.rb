@@ -6,6 +6,7 @@ CfhighlanderTemplate do
     ComponentParam 'EnvironmentName', 'dev', isGlobal: true
     ComponentParam 'EnvironmentType', 'development', allowedValues: ['development','production'], isGlobal: true
     ComponentParam 'DnsDomain', isGlobal: true
+    ComponentParam 'EnableLambdaFunctionAssociations', 'false', allowedValues: ['true', 'false']
 
     origins.each do |id,config|
       ComponentParam "#{id}OriginDomainName"

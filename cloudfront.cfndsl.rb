@@ -1,6 +1,7 @@
 CloudFormation do
 
   Condition('WebACLEnabled', FnNot(FnEquals(Ref('WebACL'), '')))
+  Condition('EnableLambdaFunctionAssociations', FnEquals(Ref('EnableLambdaFunctionAssociations'), 'true'))
 
   tags = []
   tags << { Key: 'EnvironmentName', Value: Ref('EnvironmentName') }
