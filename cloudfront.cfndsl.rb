@@ -56,7 +56,10 @@ CloudFormation do
     distribution_config[:ViewerCertificate][:CloudFrontDefaultCertificate] = true
   end
 
-  distribution_config[:ViewerCertificate][:SslSupportMethod] = ssl.has_key?('support_method') ? ssl['support_method'] : "sni-only"
+  if !distribution_config[:ViewerCertificate].key?(:CloudFrontDefaultCertificate)
+    distribution_config[:ViewerCertificate][:SslSupportMethod] = ssl.has_key?('support_method') ? ssl['support_method'] : "sni-only"
+  end
+
   distribution_config[:ViewerCertificate][:MinimumProtocolVersion] = ssl.has_key?('minimum_protocol_version') ? ssl['minimum_protocol_version'] : "TLSv1.2_2018"
 
   # Cache behviours
