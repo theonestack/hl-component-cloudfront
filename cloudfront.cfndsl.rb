@@ -40,9 +40,21 @@ CloudFormation do
   distribution_config[:DefaultRootObject] = default_root_object if defined? default_root_object
   distribution_config[:HttpVersion] = http_version
   distribution_config[:Enabled] = enabled
+  distribution_config[:IPV6Enabled] = ipv6 if defined? ipv6
   distribution_config[:PriceClass] = Ref('PriceClass')
   distribution_config[:WebACLId] = FnIf('WebACLEnabled', Ref('WebACL'), Ref('AWS::NoValue'))
   distribution_config[:CustomErrorResponses] = custom_error_responses if defined? custom_error_responses
+
+  if defined? logs
+    logging_config = {
+      Bucket: FnSub(logs['bucket'])
+    }
+
+    logging_config[:IncludeCookies] = logs['include_cookies'] if logs.key?('include_cookies')
+    logging_config[:Prefix] = FnSub(logs['prefix']) if logs.key?('prefix')
+
+    distribution_config[:Logging] = logging_config
+  end
 
   # SSL Settings
   distribution_config[:ViewerCertificate] = {}
