@@ -1,6 +1,7 @@
 # true | false
 enabled: true
 comment: My distribution
+export_name: cloudfront
 #default_root_object: index.html
 
 # http1.1 | http2

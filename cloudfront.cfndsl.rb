@@ -108,9 +108,11 @@ CloudFormation do
     end
   end if defined? dns_records
 
+  export = defined?(export_name) ? export_name : component_name
+
   Output('DomainName') do
     Value(FnGetAtt('Distribution', 'DomainName'))
-    Export FnSub("${EnvironmentName}-#{component_name}-DomainName")
+    Export FnSub("${EnvironmentName}-#{export}-DomainName")
   end
 
 end
