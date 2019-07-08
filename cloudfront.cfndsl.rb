@@ -8,7 +8,7 @@ CloudFormation do
   tags << { Key: 'EnvironmentType', Value: Ref('EnvironmentType') }
 
   distribution_config = {}
-  distribution_config[:Comment] = defined?(comment) ? comment : name
+  distribution_config[:Comment] = FnSub(comment)
   distribution_config[:Origins] = []
 
   origins.each do |id,config|
