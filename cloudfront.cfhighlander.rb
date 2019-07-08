@@ -21,6 +21,9 @@ CfhighlanderTemplate do
 
     ComponentParam 'PriceClass', 'PriceClass_All', allowedValues: ['PriceClass_All','PriceClass_200', 'PriceClass_100']
     ComponentParam 'WebACL'
+    ComponentParam 'MinTTL',      0
+    ComponentParam 'MaxTTL',      31536000
+    ComponentParam 'DefaultTTL',  86400
 
     if (defined? aliases_map) && (aliases_map.any?)
       ComponentParam 'AliasMap', aliases_map.keys[0], allowedValues: aliases_map.map { |k,v| k }

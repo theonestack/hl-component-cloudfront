@@ -1,9 +1,12 @@
 # true | false
 enabled: true
+comment: ${EnvironmentName} distribution
+export_name: cloudfront
 #default_root_object: index.html
 
 # http1.1 | http2
 http_version: http2
+# ipv6: false
 
 # custom_error_responses:
 #   -
@@ -52,3 +55,7 @@ behaviours:
 
 # dns_records:
 #   - mycdn.${DnsDomain}
+
+# logs:
+#   bucket: mybucket.com
+#   prefix: mysite
