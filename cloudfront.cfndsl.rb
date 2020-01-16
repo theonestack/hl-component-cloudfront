@@ -4,7 +4,7 @@ CloudFormation do
   Condition('EnableLambdaFunctionAssociations', FnEquals(Ref('EnableLambdaFunctionAssociations'), 'true'))
 
   tags = []
-  tags << { Key: 'EnvironmentName', Value: Ref('EnvironmentName') }
+  tags << { Key: 'Environment', Value: Ref('EnvironmentName') }
   tags << { Key: 'EnvironmentType', Value: Ref('EnvironmentType') }
 
   distribution_config = {}
