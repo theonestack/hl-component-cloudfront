@@ -1,6 +1,4 @@
 CfhighlanderTemplate do
-  Name 'cloudfront'
-  Description "cloudfront - #{component_version}"
 
   Parameters do
     ComponentParam 'EnvironmentName', 'dev', isGlobal: true
