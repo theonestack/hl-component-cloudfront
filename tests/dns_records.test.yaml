@@ -1,0 +1,35 @@
+test_metadata:
+  type: config
+  name: dns records
+  description: Create CNAME DNS records for the cloudfront distribution
+
+name: ConfigAliasesDistrobution
+description: Aliases in a config list with alb origin
+
+aliases:
+  - www.${DnsDomain}
+  - api.${DnsDomain}
+
+dns_records:
+  - apex
+  - mycdn
+  - static1
+  - static2
+
+origins:
+  myapploadbalancer:
+    source: loadbalancer
+    # http-only | match-viewer | https-only
+    protocol_policy: https-only
+    ssl_protocols:
+      - TLSv1.2
+
+
+#####
+test_cases:
+  has_mycdn_route53_recordset:
+    Resources:
+      CloudfrontDns0:
+        Properties:
+          Name: mycdn.${DnsDomain}
+      
