@@ -1,6 +1,7 @@
 CloudFormation do
 
   Condition('WebACLEnabled', FnNot(FnEquals(Ref('WebACL'), '')))
+  Condition('OverrideAliases', FnNot(FnEquals(Ref('OverrideAliases'), '')))
   Condition('EnableLambdaFunctionAssociations', FnEquals(Ref('EnableLambdaFunctionAssociations'), 'true'))
 
   tags = []
@@ -105,7 +106,7 @@ CloudFormation do
     Mapping('aliases', map)
     distribution_config[:Aliases] = FnSplit(',', FnFindInMap('aliases', Ref('AliasMap'), 'records'))
   elsif aliases.any?
-    distribution_config[:Aliases] = aliases.map { |a| FnSub(a) }
+    distribution_config[:Aliases] = FnIf('OverrideAliases', FnSplit(',', FnSub('${OverrideAliases}')), aliases.map { |a| FnSub(a) })
   end
 
   CloudFront_Distribution(:Distribution) {

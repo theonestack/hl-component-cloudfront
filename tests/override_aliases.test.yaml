@@ -1,0 +1,19 @@
+test_metadata:
+  type: config
+  name: override aliases
+  description: Aliases in a config list with alb origin
+
+test_parameters:
+  OverrideAliases: a.com,b.com
+
+aliases:
+  - www.${DnsDomain}
+  - api.${DnsDomain}
+
+origins:
+  myapploadbalancer:
+    source: loadbalancer
+    # http-only | match-viewer | https-only
+    protocol_policy: https-only
+    ssl_protocols:
+      - TLSv1.2

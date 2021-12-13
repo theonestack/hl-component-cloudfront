@@ -29,6 +29,8 @@ CfhighlanderTemplate do
       ComponentParam 'AliasMap', aliases_map.keys[0], allowedValues: aliases_map.map { |k,v| k }
     end
 
+    ComponentParam 'OverrideAliases', ''
+
   end
 
 
