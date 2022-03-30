@@ -28,14 +28,23 @@ CloudFormation do
       origin[:CustomOriginConfig][:OriginSSLProtocols] = config['ssl_policy'] if config.has_key?('ssl_policy')
       origin[:CustomOriginConfig][:OriginProtocolPolicy] = config['protocol_policy']
     when 's3'
+      Condition("#{id}CreateOriginAccessIdentity", FnEquals(Ref("#{id}OriginAccessIdentityInput"), ''))
+
       CloudFront_CloudFrontOriginAccessIdentity("#{id}OriginAccessIdentity") {
+        Condition("#{id}CreateOriginAccessIdentity")
         CloudFrontOriginAccessIdentityConfig({
           Comment: FnSub("${EnvironmentName}-#{id}-CloudFrontOriginAccessIdentity")
         })
       }
-      origin[:S3OriginConfig] = { OriginAccessIdentity: FnSub("origin-access-identity/cloudfront/${#{id}OriginAccessIdentity}") }
+      origin[:S3OriginConfig] = { OriginAccessIdentity: 
+        FnIf("#{id}CreateOriginAccessIdentity",
+          FnSub("origin-access-identity/cloudfront/${#{id}OriginAccessIdentity}"),
+          FnSub("origin-access-identity/cloudfront/${#{id}OriginAccessIdentityInput}")
+        )
+      }
 
       Output("#{id}OriginAccessIdentity") do
+        Condition("#{id}CreateOriginAccessIdentity")
         Value(FnGetAtt("#{id}OriginAccessIdentity", 'S3CanonicalUserId'))
       end
 

@@ -8,6 +8,7 @@ CfhighlanderTemplate do
 
     origins.each do |id,config|
       ComponentParam "#{id}OriginDomainName"
+      ComponentParam "#{id}OriginAccessIdentityInput"
     end if (defined? origins) && (origins.any?)
 
     case ssl['type']

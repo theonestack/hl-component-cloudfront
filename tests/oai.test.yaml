@@ -1,0 +1,13 @@
+test_metadata:
+  type: config
+  name: oai
+  description: Origin Access Identity Input
+
+name: OriginAccessIdentityInput
+description: Optional Origin Access Identity Input
+origins:
+  mys3bucket:
+    source: 's3'
+behaviours:
+  default:
+    TargetOriginId: mys3bucket
