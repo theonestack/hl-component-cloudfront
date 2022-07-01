@@ -70,3 +70,9 @@ behaviours:
 # logs:
 #   bucket: mybucket.com
 #   prefix: mysite
+
+# geo_restrictions:
+#   locations: 
+#     - Antarctica
+#     - etcetera
+#   type: whitelist | blacklist | none
