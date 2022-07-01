@@ -125,7 +125,7 @@ CloudFormation do
       restriction = {}
       geo_restriction = {}
       geo_restriction[:Locations] = geo_restrictions['locations']
-      geo_restriction[:RestrictionType] = FnSub("#{geo_restrictions['type']}")
+      geo_restriction[:RestrictionType] = geo_restrictions['type']
       restriction[:GeoRestriction] = geo_restriction
       distribution_config[:Restrictions] = restriction
     end
