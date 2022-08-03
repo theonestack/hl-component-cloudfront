@@ -118,6 +118,19 @@ CloudFormation do
     distribution_config[:Aliases] = FnIf('OverrideAliases', FnSplit(',', Ref('OverrideAliases')), aliases.map { |a| FnSub(a) })
   end
 
+  # Geo Restrictions
+  geo_restrictions = external_parameters.fetch(:geo_restrictions, {})
+  if geo_restrictions.any?
+    if geo_restrictions['locations'].any? && geo_restrictions['type']
+      restriction = {}
+      geo_restriction = {}
+      geo_restriction[:Locations] = geo_restrictions['locations']
+      geo_restriction[:RestrictionType] = geo_restrictions['type']
+      restriction[:GeoRestriction] = geo_restriction
+      distribution_config[:Restrictions] = restriction
+    end
+  end
+
   CloudFront_Distribution(:Distribution) {
     DistributionConfig distribution_config
     Tags tags
