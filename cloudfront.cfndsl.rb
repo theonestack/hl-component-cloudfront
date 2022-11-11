@@ -155,4 +155,9 @@ CloudFormation do
     Export FnSub("${EnvironmentName}-#{external_parameters[:export_name]}-DomainName")
   end
 
+  Output('DistributionId') do
+    Value(FnGetAtt('Distribution', 'Id'))
+    Export FnSub("${EnvironmentName}-#{external_parameters[:export_name]}-DistributionId")
+  end
+
 end
