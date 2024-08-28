@@ -1,5 +1,7 @@
 CloudFormation do
 
+  export = external_parameters.fetch(:export_name, external_parameters[:component_name])
+
   Condition('WebACLEnabled', FnNot(FnEquals(Ref('WebACL'), '')))
   Condition('OverrideAliases', FnNot(FnEquals(Ref('OverrideAliases'), '')))
   Condition('EnableLambdaFunctionAssociations', FnEquals(Ref('EnableLambdaFunctionAssociations'), 'true'))
@@ -152,12 +154,12 @@ CloudFormation do
 
   Output('DomainName') do
     Value(FnGetAtt('Distribution', 'DomainName'))
-    Export FnSub("${EnvironmentName}-#{external_parameters[:export_name]}-DomainName")
+    Export FnSub("${EnvironmentName}-#{export}-DomainName")
   end
 
   Output('DistributionId') do
     Value(FnGetAtt('Distribution', 'Id'))
-    Export FnSub("${EnvironmentName}-#{external_parameters[:export_name]}-DistributionId")
+    Export FnSub("${EnvironmentName}-#{export}-DistributionId")
   end
 
 end
