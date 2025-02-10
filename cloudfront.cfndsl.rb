@@ -4,14 +4,17 @@ CloudFormation do
 
   Condition('WebACLEnabled', FnNot(FnEquals(Ref('WebACL'), '')))
   Condition('OverrideAliases', FnNot(FnEquals(Ref('OverrideAliases'), '')))
-  Condition('EnableLambdaFunctionAssociations', FnEquals(Ref('EnableLambdaFunctionAssociations'), 'true'))
 
   tags = []
   tags << { Key: 'Environment', Value: Ref('EnvironmentName') }
   tags << { Key: 'EnvironmentType', Value: Ref('EnvironmentType') }
 
   distribution_config = {}
-  distribution_config[:Comment] = FnSub(comment)
+  if (comment.to_s.start_with?('{"Fn::'))
+    distribution_config[:Comment] =  comment
+  else
+    distribution_config[:Comment] = FnSub(comment)
+  end
   distribution_config[:Origins] = []
 
   origins = external_parameters.fetch(:origins, {})
@@ -30,23 +33,14 @@ CloudFormation do
       origin[:CustomOriginConfig][:OriginSSLProtocols] = config['ssl_policy'] if config.has_key?('ssl_policy')
       origin[:CustomOriginConfig][:OriginProtocolPolicy] = config['protocol_policy']
     when 's3'
-      Condition("#{id}CreateOriginAccessIdentity", FnEquals(Ref("#{id}OriginAccessIdentityInput"), ''))
-
       CloudFront_CloudFrontOriginAccessIdentity("#{id}OriginAccessIdentity") {
-        Condition("#{id}CreateOriginAccessIdentity")
         CloudFrontOriginAccessIdentityConfig({
-          Comment: FnSub("${EnvironmentName}-#{id}-CloudFrontOriginAccessIdentity")
+          Comment: FnJoin("-", [Ref("EnvironmentName"), id, "CloudFrontOriginAccessIdentity"])
         })
       }
-      origin[:S3OriginConfig] = { OriginAccessIdentity: 
-        FnIf("#{id}CreateOriginAccessIdentity",
-          FnSub("origin-access-identity/cloudfront/${#{id}OriginAccessIdentity}"),
-          FnSub("origin-access-identity/cloudfront/${#{id}OriginAccessIdentityInput}")
-        )
-      }
+      origin[:S3OriginConfig] = origin[:S3OriginConfig] = { OriginAccessIdentity: FnSub("origin-access-identity/cloudfront/${#{id}OriginAccessIdentity}") }
 
       Output("#{id}OriginAccessIdentity") do
-        Condition("#{id}CreateOriginAccessIdentity")
         Value(FnGetAtt("#{id}OriginAccessIdentity", 'S3CanonicalUserId'))
       end
 
@@ -140,10 +134,15 @@ CloudFormation do
 
   dns_records = external_parameters.fetch(:dns_records, {})
   dns_records.each_with_index do |record, index|
-    name = (['apex',''].include? record) ? dns_format : "#{record}.#{dns_format}."
+    name = (['apex',''].include? record) ? dns_format : FnJoin('.', [record, dns_format, ''])
     Route53_RecordSet("CloudfrontDns#{index}") do
-      HostedZoneName FnSub("#{dns_format}.")
-      Name FnSub(name)
+      if (dns_format.to_s.start_with?('{"Fn::'))
+        HostedZoneName FnJoin('', [dns_format, '.'])
+        Name name
+      else
+        HostedZoneName FnSub("#{dns_format}.") 
+        Name FnSub(name)
+      end
       Type 'A'
       AliasTarget ({
           DNSName: FnGetAtt(:Distribution, :DomainName),
@@ -154,12 +153,12 @@ CloudFormation do
 
   Output('DomainName') do
     Value(FnGetAtt('Distribution', 'DomainName'))
-    Export FnSub("${EnvironmentName}-#{export}-DomainName")
+    Export FnJoin("-", [Ref("EnvironmentName"), export, "DomainName"])
   end
 
   Output('DistributionId') do
     Value(FnGetAtt('Distribution', 'Id'))
-    Export FnSub("${EnvironmentName}-#{export}-DistributionId")
+    Export FnJoin("-", [Ref("EnvironmentName"), export, "DistributionId"])
   end
 
 end
