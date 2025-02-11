@@ -33,15 +33,34 @@ CloudFormation do
       origin[:CustomOriginConfig][:OriginSSLProtocols] = config['ssl_policy'] if config.has_key?('ssl_policy')
       origin[:CustomOriginConfig][:OriginProtocolPolicy] = config['protocol_policy']
     when 's3'
-      CloudFront_CloudFrontOriginAccessIdentity("#{id}OriginAccessIdentity") {
-        CloudFrontOriginAccessIdentityConfig({
-          Comment: FnJoin("-", [Ref("EnvironmentName"), id, "CloudFrontOriginAccessIdentity"])
-        })
-      }
-      origin[:S3OriginConfig] = origin[:S3OriginConfig] = { OriginAccessIdentity: FnSub("origin-access-identity/cloudfront/${#{id}OriginAccessIdentity}") }
 
-      Output("#{id}OriginAccessIdentity") do
-        Value(FnGetAtt("#{id}OriginAccessIdentity", 'S3CanonicalUserId'))
+      use_access_identity = external_parameters.fetch(:use_access_identity, false)
+      if (use_access_identity == true)
+        CloudFront_CloudFrontOriginAccessIdentity("#{id}OriginAccessIdentity") {
+          CloudFrontOriginAccessIdentityConfig({
+            Comment: FnJoin("-", [Ref("EnvironmentName"), id, "CloudFrontOriginAccessIdentity"])
+          })
+        }
+        origin[:S3OriginConfig] = { OriginAccessIdentity: FnSub("origin-access-identity/cloudfront/${#{id}OriginAccessIdentity}") }
+
+        Output("#{id}OriginAccessIdentity") do
+          Value(FnGetAtt("#{id}OriginAccessIdentity", 'S3CanonicalUserId'))
+        end
+      else
+        CloudFront_OriginAccessControl("#{id}OriginAccessControl") {
+          OriginAccessControlConfig({
+            Description: FnJoin("-", [Ref("EnvironmentName"), id, "CloudFrontOriginAccessControl"]),
+            Name: FnJoin('', [id, '.s3.', Ref('AWS::Region'), '.amazonaws.com']),
+            OriginAccessControlOriginType: 's3',
+            SigningBehavior: 'always',
+            SigningProtocol: 'sigv4'
+          })
+        }
+        origin[:OriginAccessControlId] = Ref("#{id}OriginAccessControl")
+
+        Output("#{id}OriginAccessControl") do
+          Value Ref("#{id}OriginAccessControl")
+        end
       end
 
     end
