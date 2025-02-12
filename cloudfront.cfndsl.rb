@@ -155,6 +155,22 @@ CloudFormation do
         OriginRequestPolicyConfig request_policy_config
       }
     end
+
+    # Functions
+    functions = external_parameters.fetch(:functions, {})
+    functions.each do |func, fconfig|
+      func_safe = func.gsub(/[-_.]/,"")
+      func_conf = {}
+      func_conf['Comment'] = fconfig.has_key?('Comment') ? fconfig['Comment'] : FnJoin(" ", ["The", func, "CloudFrontFunction"])
+      func_conf['Runtime'] = fconfig.has_key?('Runtime') ? fconfig['Runtime'] : "cloudfront-js-2.0"
+      func_conf['KeyValueStoreAssociations'] = fconfig['KeyValueStoreAssociations'] if fconfig.has_key?('KeyValueStoreAssociations')
+      CloudFront_Function("#{func_safe}CloudFrontFunction") do
+        AutoPublish fconfig.has_key?('AutoPublish') ? fconfig['AutoPublish'] : true
+        FunctionCode fconfig['code']
+        Name fconfig.has_key?('Name') ? fconfig['Name'] : func_safe
+        FunctionConfig func_conf
+      end
+    end
   
     # Cache behaviours
     behaviours = external_parameters.fetch(:behaviours, {})
@@ -167,6 +183,14 @@ CloudFormation do
         end
         request_policy_safe = config['OriginRequestPolicyId'].gsub(/[-_.]/,"") if config.has_key?('OriginRequestPolicyId')
         config['OriginRequestPolicyId'] = { "Ref" => "#{request_policy_safe}CloudFrontOriginRequestPolicy" } if config.has_key?('OriginRequestPolicyId')
+        if config.has_key?('FunctionAssociation')
+          if config['FunctionAssociation'].has_key?('Function')
+            func_safe = config['FunctionAssociation']['Function'].gsub(/[-_.]/,"")
+            config['FunctionAssociation'].delete('Function')
+            config['FunctionAssociation']['EventType'] = 'viewer-request' if not config['FunctionAssociation'].has_key?('EventType')
+            config['FunctionAssociation']['FunctionARN'] = FnGetAtt("#{func_safe}CloudFrontFunction", "FunctionARN")
+          end
+        end
         distribution_config[:DefaultCacheBehavior] = config
       else
         config.each do |x|
@@ -177,6 +201,14 @@ CloudFormation do
           end
           request_policy_safe = x['OriginRequestPolicyId'].gsub(/[-_.]/,"") if x.has_key?('OriginRequestPolicyId')
           x['OriginRequestPolicyId'] = { "Ref" => "#{request_policy_safe}CloudFrontOriginRequestPolicy" } if x.has_key?('OriginRequestPolicyId')
+          if x.has_key?('FunctionAssociation')
+            if x['FunctionAssociation'].has_key?('Function')
+              func_safe = x['FunctionAssociation']['Function'].gsub(/[-_.]/,"")
+              x['FunctionAssociation'].delete('Function')
+              x['FunctionAssociation']['EventType'] = 'viewer-request' if not x['FunctionAssociation'].has_key?('EventType')
+              x['FunctionAssociation']['FunctionARN'] = FnGetAtt("#{func_safe}CloudFrontFunction", "FunctionARN")
+            end
+          end
         end
         distribution_config[:CacheBehaviors] = config
       end
