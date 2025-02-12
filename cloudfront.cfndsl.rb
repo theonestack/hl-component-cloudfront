@@ -111,15 +111,76 @@ CloudFormation do
 
   distribution_config[:ViewerCertificate][:MinimumProtocolVersion] = ssl.has_key?('minimum_protocol_version') ? ssl['minimum_protocol_version'] : "TLSv1.2_2018"
 
-  # Cache behviours
-  behaviours = external_parameters.fetch(:behaviours, {})
-  behaviours.each do |behaviour, config|
-    if behaviour == 'default'
-      distribution_config[:DefaultCacheBehavior] = config
-    else
-      distribution_config[:CacheBehaviors] = config
+    # Cache policies
+    cache_policies = external_parameters.fetch(:cache_policies, {})
+    cache_policies.each do |policy, policy_config|
+      cache_policy_config = {}
+      cache_policy_config[:Comment] = policy_config['Comment'] if policy_config.has_key?('Comment')
+      cache_policy_config[:DefaultTTL] = policy_config.has_key?('DefaultTTL') ? policy_config['DefaultTTL'] : Ref('DefaultTTL')
+      cache_policy_config[:MaxTTL] = policy_config.has_key?('MaxTTL') ? policy_config['MaxTTL'] : Ref('MaxTTL')
+      cache_policy_config[:MinTTL] = policy_config.has_key?('MinTTL') ? policy_config['MinTTL'] : Ref('MinTTL')
+      cache_policy_config[:Name] = policy_config.has_key?('Name') ? policy_config['Name'] : "#{component_name}-#{policy}"
+      cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin] = {}
+      cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:CookiesConfig] = {}
+      cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:CookiesConfig][:CookieBehavior] = policy_config.has_key?('CookieBehavior') ? policy_config['CookieBehavior'] : "none"
+      cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:CookiesConfig][:Cookies] = policy_config['Cookies'] if policy_config.has_key?('Cookies')
+      cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:EnableAcceptEncodingBrotli] = policy_config.has_key?('EnableAcceptEncodingBrotli') ? policy_config['EnableAcceptEncodingBrotli'] : false
+      cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:EnableAcceptEncodingGzip] = policy_config.has_key?('EnableAcceptEncodingGzip') ? policy_config['EnableAcceptEncodingGzip'] : true
+      cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:HeadersConfig] = {}
+      cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:HeadersConfig][:HeaderBehavior] = policy_config.has_key?('HeaderBehavior') ? policy_config['HeaderBehavior'] : 'none'
+      cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:HeadersConfig][:Headers] = policy_config['Headers'] if policy_config.has_key?('Headers')
+      policy_safe = policy.gsub(/[-_.]/,"")
+      CloudFront_CachePolicy("#{policy_safe}CloudFrontCachePolicy") {
+        CachePolicyConfig cache_policy_config
+      }
     end
-  end
+
+    # Origin request policies
+    origin_request_policies = external_parameters.fetch(:origin_request_policies, {})
+    origin_request_policies.each do |request_policy, policy_config|
+      request_policy_config = {}
+      request_policy_config[:Comment] = policy_config['Comment'] if policy_config.has_key?('Comment')
+      request_policy_config[:Name] = policy_config.has_key?('Name') ? policy_config['Name'] : "#{component_name}-#{request_policy}"
+      request_policy_config[:CookiesConfig] = {}
+      request_policy_config[:CookiesConfig][:CookieBehavior] = policy_config.has_key?('CookieBehavior') ? policy_config['CookieBehavior'] : "none"
+      request_policy_config[:CookiesConfig][:Cookies] = policy_config['Cookies'] if policy_config.has_key?('Cookies')
+      request_policy_config[:HeadersConfig] = {}
+      request_policy_config[:HeadersConfig][:HeaderBehavior] = policy_config.has_key?('HeaderBehavior') ? policy_config['HeaderBehavior'] : 'none'
+      request_policy_config[:HeadersConfig][:Headers] = policy_config['Headers'] if policy_config.has_key?('Headers')
+      request_policy_config[:QueryStringsConfig] = {}
+      request_policy_config[:QueryStringsConfig][:QueryStringBehavior] = policy_config.has_key?('QueryStringBehavior') ? policy_config['QueryStringBehavior'] : 'none'
+      request_policy_config[:QueryStringsConfig][:QueryStrings] = policy_config['QueryStrings'] if policy_config.has_key?('QueryStrings')
+      request_policy_safe = request_policy.gsub(/[-_.]/,"")
+      CloudFront_OriginRequestPolicy("#{request_policy_safe}CloudFrontOriginRequestPolicy") {
+        OriginRequestPolicyConfig request_policy_config
+      }
+    end
+  
+    # Cache behaviours
+    behaviours = external_parameters.fetch(:behaviours, {})
+    behaviours.each do |behaviour, config|
+      if behaviour == 'default'
+        if (config.has_key?('CachePolicyId') and config.has_key?('ForwardedValues'))
+          config.delete('ForwardedValues')
+          policy_safe = config['CachePolicyId'].gsub(/[-_.]/,"")
+          config['CachePolicyId'] = { "Ref" => "#{policy_safe}CloudFrontCachePolicy" }
+        end
+        request_policy_safe = config['OriginRequestPolicyId'].gsub(/[-_.]/,"") if config.has_key?('OriginRequestPolicyId')
+        config['OriginRequestPolicyId'] = { "Ref" => "#{request_policy_safe}CloudFrontOriginRequestPolicy" } if config.has_key?('OriginRequestPolicyId')
+        distribution_config[:DefaultCacheBehavior] = config
+      else
+        config.each do |x|
+          if (x.has_key?('CachePolicyId') and x.has_key?('ForwardedValues'))
+            x.delete('ForwardedValues')
+            policy_safe = x['CachePolicyId'].gsub(/[-_.]/,"")
+            x['CachePolicyId'] = { "Ref" => "#{policy_safe}CloudFrontCachePolicy" }
+          end
+          request_policy_safe = x['OriginRequestPolicyId'].gsub(/[-_.]/,"") if x.has_key?('OriginRequestPolicyId')
+          x['OriginRequestPolicyId'] = { "Ref" => "#{request_policy_safe}CloudFrontOriginRequestPolicy" } if x.has_key?('OriginRequestPolicyId')
+        end
+        distribution_config[:CacheBehaviors] = config
+      end
+    end
 
   # Aliases
   aliases_map = external_parameters.fetch(:aliases_map, {})
