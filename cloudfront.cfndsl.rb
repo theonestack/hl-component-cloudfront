@@ -221,7 +221,7 @@ CloudFormation do
     map = {}
     aliases_map.each { |k,v| map[k.to_sym] = { records: v.join(',') } }
     Mapping('aliases', map)
-    distribution_config[:Aliases] = FnSplit(',', FnFindInMap('aliases', Ref('EnvironmentName'), 'records'))
+    distribution_config[:Aliases] = FnSplit(',', FnFindInMap('aliases', Ref('AliasMap'), 'records'))
   elsif aliases.any?
     distribution_config[:Aliases] = FnIf('OverrideAliases', FnSplit(',', Ref('OverrideAliases')), aliases.map { |a| FnSub(a) })
   end
