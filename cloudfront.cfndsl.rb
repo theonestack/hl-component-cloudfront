@@ -246,15 +246,16 @@ CloudFormation do
 
   dns_records = external_parameters.fetch(:dns_records, {})
   dns_records.each_with_index do |record, index|
-    name = (['apex',''].include? record) ? dns_format : FnJoin('.', [record, dns_format, ''])
+    if (dns_format.to_s.start_with?('{"Fn::'))
+      name = (['apex',''].include? record) ? FnJoin('', [dns_format]) : FnJoin('.', [record, dns_format, ''])
+      zone_name = FnJoin('', [dns_format, '.'])
+    else
+      name = (['apex',''].include? record) ? FnSub("#{dns_format}") : FnSub("#{record}.#{dns_format}")
+      zone_name = FnSub("#{dns_format}.")
+    end
     Route53_RecordSet("CloudfrontDns#{index}") do
-      if (dns_format.to_s.start_with?('{"Fn::'))
-        HostedZoneName FnJoin('', [dns_format, '.'])
-        Name name
-      else
-        HostedZoneName FnSub("#{dns_format}.") 
-        Name FnSub(name)
-      end
+      HostedZoneName zone_name
+      Name name
       Type 'A'
       AliasTarget ({
           DNSName: FnGetAtt(:Distribution, :DomainName),
