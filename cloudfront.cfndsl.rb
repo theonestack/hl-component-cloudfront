@@ -176,7 +176,7 @@ CloudFormation do
     behaviours = external_parameters.fetch(:behaviours, {})
     behaviours.each do |behaviour, config|
       if behaviour == 'default'
-        if (config.has_key?('CachePolicyId') and config.has_key?('ForwardedValues'))
+        if (config.has_key?('CachePolicyId'))
           config.delete('ForwardedValues')
           policy_safe = config['CachePolicyId'].gsub(/[-_.]/,"")
           config['CachePolicyId'] = { "Ref" => "#{policy_safe}CloudFrontCachePolicy" }
@@ -194,7 +194,7 @@ CloudFormation do
         distribution_config[:DefaultCacheBehavior] = config
       else
         config.each do |x|
-          if (x.has_key?('CachePolicyId') and x.has_key?('ForwardedValues'))
+          if (x.has_key?('CachePolicyId'))
             x.delete('ForwardedValues')
             policy_safe = x['CachePolicyId'].gsub(/[-_.]/,"")
             x['CachePolicyId'] = { "Ref" => "#{policy_safe}CloudFrontCachePolicy" }
