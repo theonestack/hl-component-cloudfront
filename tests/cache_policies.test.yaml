@@ -1,0 +1,64 @@
+test_metadata:
+  type: config
+  name: cache policies
+  description: Create custom cache policies
+
+
+origins:
+  myapploadbalancer:
+    source: loadbalancer
+    # http-only | match-viewer | https-only
+    protocol_policy: https-only
+    ssl_protocols:
+      - TLSv1.2
+
+cache_policies:
+  full:
+    Comment: Full Cache Policy
+    DefaultTTL: 86400     # Required
+    MaxTTL: 31536000      # Required
+    MinTTL: 0             # Required
+    Name: Full-Policy.    # Required
+    CookieBehavior: none  # none|whitelist|allExcept|all   Required
+    Cookies:
+      - someValue
+    EnableAcceptEncodingBrotli: false
+    EnableAcceptEncodingGzip: true # Required
+    HeaderBehavior: none  # none|whitelist Required
+    Headers:
+      - Host
+      - CloudFront-Viewer-Country
+  minimal:
+    Headers:
+      - Host
+      - CloudFront-Viewer-Country
+
+behaviours:
+  default:
+    AllowedMethods:
+      - GET
+      - HEAD
+      - OPTIONS
+      - PUT
+      - PATCH
+      - POST
+      - DELETE
+    TargetOriginId: myapploadbalancer
+    CachePolicyId: full
+    ForwardedValues:
+      Headers:
+        - "CloudFront-Viewer-Country"
+      Cookies:
+        Forward: all  # none  # Drift detected on STAGE and PROD as well
+      QueryString: true
+    ViewerProtocolPolicy: redirect-to-https # allow-all|redirect-to-https|https-only
+  custom:
+    -
+      PathPattern: /api*
+      AllowedMethods:
+        - GET
+        - HEAD
+        - OPTIONS
+      Compress: true
+      TargetOriginId: myapploadbalancer
+      CachePolicyId: minimal
