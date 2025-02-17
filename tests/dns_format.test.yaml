@@ -1,0 +1,25 @@
+test_metadata:
+  type: config
+  name: dns format
+  description: Create CNAME DNS records with a custom format
+
+test_parameters:
+  DnsPrefix: custom-prefix
+
+dns_format: # ${EnvironmentName}.${DnsDomain}
+  Fn::Join:
+    - '.'
+    - - Ref: DnsPrefix
+      - Ref: DnsDomain
+
+dns_records:
+  - apex
+  - mycdn
+
+origins:
+  myapploadbalancer:
+    source: loadbalancer
+    # http-only | match-viewer | https-only
+    protocol_policy: https-only
+    ssl_protocols:
+      - TLSv1.2
