@@ -129,6 +129,9 @@ CloudFormation do
       cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:HeadersConfig] = {}
       cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:HeadersConfig][:HeaderBehavior] = policy_config.has_key?('HeaderBehavior') ? policy_config['HeaderBehavior'] : 'none'
       cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:HeadersConfig][:Headers] = policy_config['Headers'] if policy_config.has_key?('Headers')
+      cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:QueryStringsConfig] = {}
+      cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:QueryStringsConfig][:QueryStringBehavior] = policy_config.has_key?('QueryStringBehavior') ? policy_config['QueryStringBehavior'] : 'none'
+      cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:QueryStringsConfig][:QueryStrings] = policy_config['QueryStrings'] if policy_config.has_key?('QueryStrings')
       policy_safe = policy.gsub(/[-_.]/,"")
       CloudFront_CachePolicy("#{policy_safe}CloudFrontCachePolicy") {
         CachePolicyConfig cache_policy_config
