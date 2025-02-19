@@ -57,7 +57,7 @@ CloudFormation do
           })
         }
         origin[:OriginAccessControlId] = Ref("#{id}OriginAccessControl")
-
+        origin[:S3OriginConfig] = {}  # If you're using origin access control (OAC) instead of origin access identity, specify an empty OriginAccessIdentity element.
         Output("#{id}OriginAccessControl") do
           Value Ref("#{id}OriginAccessControl")
         end
