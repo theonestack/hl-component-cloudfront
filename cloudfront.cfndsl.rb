@@ -268,7 +268,7 @@ CloudFormation do
   dns_records = external_parameters.fetch(:dns_records, {})
   dns_records.each_with_index do |record, index|
     if (dns_format.to_s.start_with?('{"Fn::'))
-      name = (['apex',''].include? record) ? FnJoin('', [dns_format]) : FnJoin('.', [record, dns_format, ''])
+      name = (['apex',''].include? record) ? FnJoin('', [dns_format]) : FnJoin('.', [record, dns_format])
       zone_name = FnJoin('', [dns_format, '.'])
     else
       name = (['apex',''].include? record) ? FnSub("#{dns_format}") : FnSub("#{record}.#{dns_format}")
