@@ -26,6 +26,24 @@ CloudFormation do
     origin[:OriginPath] = config['origin_path'] if config.has_key?('origin_path')
     origin[:OriginCustomHeaders] = config['custom_headers'] if config.has_key?('custom_headers')
     case config['source']
+    when 'vpc'
+      if config.has_key?("arn")
+          vpc_origin_config = {}
+          vpc_origin_config[:HTTPPort] = config.has_key?('http_port') ? config["http_port"] : 80
+          vpc_origin_config[:HTTPSPort] = config.has_key?('https_port') ? config["https_port"] : 443
+          vpc_origin_config[:Arn] = config["arn"]
+          vpc_origin_config[:Name] = config.has_key?('name') ? config["name"] : FnJoin("-", [Ref("EnvironmentName"), id, "vpc", "origin"])
+          vpc_origin_config[:OriginProtocolPolicy] = config['origin_protocol_policy'] if config.has_key?('origin_protocol_policy')
+          vpc_origin_config[:OriginSSLProtocols] = config['origin_ssl_protocols'] if config.has_key?('origin_ssl_protocols')
+          CloudFront_VpcOrigin("#{id}VPCOrigin") {
+            VpcOriginEndpointConfig vpc_origin_config
+            Tags tags
+          }
+          origin[:VpcOriginConfig] = {}
+          origin[:VpcOriginConfig][:OriginKeepaliveTimeout] = config["keep_alive_timeout"] if config.has_key?('keep_alive_timeout')
+          origin[:VpcOriginConfig][:OriginReadTimeout] = config["read_timeout"] if config.has_key?('read_timeout')
+          origin[:VpcOriginConfig][:VpcOriginId] = Ref("#{id}VPCOrigin")
+      end
     when 'loadbalancer', 'apigateway'
       origin[:CustomOriginConfig] = { HTTPPort: '80', HTTPSPort: '443' }
       origin[:CustomOriginConfig][:OriginKeepaliveTimeout] = config["keep_alive_timeout"] if config.has_key?('keep_alive_timeout')
@@ -57,7 +75,7 @@ CloudFormation do
           })
         }
         origin[:OriginAccessControlId] = Ref("#{id}OriginAccessControl")
-
+        origin[:S3OriginConfig] = {}  # If you're using origin access control (OAC) instead of origin access identity, specify an empty OriginAccessIdentity element.
         Output("#{id}OriginAccessControl") do
           Value Ref("#{id}OriginAccessControl")
         end
@@ -129,6 +147,9 @@ CloudFormation do
       cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:HeadersConfig] = {}
       cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:HeadersConfig][:HeaderBehavior] = policy_config.has_key?('HeaderBehavior') ? policy_config['HeaderBehavior'] : 'none'
       cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:HeadersConfig][:Headers] = policy_config['Headers'] if policy_config.has_key?('Headers')
+      cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:QueryStringsConfig] = {}
+      cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:QueryStringsConfig][:QueryStringBehavior] = policy_config.has_key?('QueryStringBehavior') ? policy_config['QueryStringBehavior'] : 'none'
+      cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:QueryStringsConfig][:QueryStrings] = policy_config['QueryStrings'] if policy_config.has_key?('QueryStrings')
       policy_safe = policy.gsub(/[-_.]/,"")
       CloudFront_CachePolicy("#{policy_safe}CloudFrontCachePolicy") {
         CachePolicyConfig cache_policy_config
@@ -247,7 +268,7 @@ CloudFormation do
   dns_records = external_parameters.fetch(:dns_records, {})
   dns_records.each_with_index do |record, index|
     if (dns_format.to_s.start_with?('{"Fn::'))
-      name = (['apex',''].include? record) ? FnJoin('', [dns_format]) : FnJoin('.', [record, dns_format, ''])
+      name = (['apex',''].include? record) ? FnJoin('', [dns_format]) : FnJoin('.', [record, dns_format])
       zone_name = FnJoin('', [dns_format, '.'])
     else
       name = (['apex',''].include? record) ? FnSub("#{dns_format}") : FnSub("#{record}.#{dns_format}")
