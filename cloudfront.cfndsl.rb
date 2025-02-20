@@ -26,6 +26,24 @@ CloudFormation do
     origin[:OriginPath] = config['origin_path'] if config.has_key?('origin_path')
     origin[:OriginCustomHeaders] = config['custom_headers'] if config.has_key?('custom_headers')
     case config['source']
+    when 'vpc'
+      if config.has_key?("arn")
+          vpc_origin_config = {}
+          vpc_origin_config[:HTTPPort] = config.has_key?('http_port') ? config["http_port"] : 80
+          vpc_origin_config[:HTTPSPort] = config.has_key?('https_port') ? config["https_port"] : 443
+          vpc_origin_config[:Arn] = config["arn"]
+          vpc_origin_config[:Name] = config.has_key?('name') ? config["name"] : FnJoin("-", [Ref("EnvironmentName"), id, "vpc", "origin"])
+          vpc_origin_config[:OriginProtocolPolicy] = config['origin_protocol_policy'] if config.has_key?('origin_protocol_policy')
+          vpc_origin_config[:OriginSSLProtocols] = config['origin_ssl_protocols'] if config.has_key?('origin_ssl_protocols')
+          CloudFront_VpcOrigin("#{id}VPCOrigin") {
+            VpcOriginEndpointConfig vpc_origin_config
+            Tags tags
+          }
+          origin[:VpcOriginConfig] = {}
+          origin[:VpcOriginConfig][:OriginKeepaliveTimeout] = config["keep_alive_timeout"] if config.has_key?('keep_alive_timeout')
+          origin[:VpcOriginConfig][:OriginReadTimeout] = config["read_timeout"] if config.has_key?('read_timeout')
+          origin[:VpcOriginConfig][:VpcOriginId] = Ref("#{id}VPCOrigin")
+      end
     when 'loadbalancer', 'apigateway'
       origin[:CustomOriginConfig] = { HTTPPort: '80', HTTPSPort: '443' }
       origin[:CustomOriginConfig][:OriginKeepaliveTimeout] = config["keep_alive_timeout"] if config.has_key?('keep_alive_timeout')

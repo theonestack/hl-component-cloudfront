@@ -1,0 +1,28 @@
+test_metadata:
+  type: config
+  name: vpc origin
+  description: Create VPC origin
+
+test_parameters:
+  DnsPrefix: custom-prefix
+
+dns_format: # ${EnvironmentName}.${DnsDomain}
+  Fn::Join:
+    - '.'
+    - - Ref: DnsPrefix
+      - Ref: DnsDomain
+
+dns_records:
+  - apex
+  - mycdn
+
+origins:
+  lb:
+    name: alb
+    source: vpc
+    # Only EC2 or ELB arns
+    # arn:aws:elasticloadbalancing:eu-central-1:732708932786:loadbalancer/app/stage-private/dc3b74e014fa767f
+    # arn:aws:ec2:eu-central-1:444818838935:instance/i-0c954b00e813d2395
+    arn:
+      Ref: cdncloudfrontALB
+    origin_protocol_policy: match-viewer
