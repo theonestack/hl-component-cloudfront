@@ -1,5 +1,19 @@
 CloudFormation do
 
+  dependencies_list = []
+  cloudfront_component_name = external_parameters.fetch(:cloudfront_component_name, nil)
+  if !cloudfront_component_name.nil?
+    origins.filter{|k, v| (v['source'] == 's3') && (v['type'] == 'create_if_not_exists')}.each do |id, config|
+      if (origins.filter{|k, v| (v['source'] == 's3')}.map.with_index{|(k,v),i| k.to_s == id ? i.to_i : nil}.compact == [0])
+        id = ""
+      end
+      CloudFormation_WaitConditionHandle("#{id}Bucket") do
+        Type 'AWS::CloudFormation::WaitConditionHandle'
+      end
+      dependencies_list << "#{id}Bucket"
+    end
+  end
+  
   export = external_parameters.fetch(:export_name, external_parameters[:component_name])
 
   Condition('WebACLEnabled', FnNot(FnEquals(Ref('WebACL'), '')))
@@ -261,6 +275,7 @@ CloudFormation do
   end
 
   CloudFront_Distribution(:Distribution) {
+    DependsOn dependencies_list
     DistributionConfig distribution_config
     Tags tags
   }
