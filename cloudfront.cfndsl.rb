@@ -1,8 +1,8 @@
 CloudFormation do
 
+  dependencies_list = []
   export = external_parameters.fetch(:export_name, external_parameters[:component_name])
 
-  Condition('WebACLEnabled', FnNot(FnEquals(Ref('WebACL'), '')))
   Condition('OverrideAliases', FnNot(FnEquals(Ref('OverrideAliases'), '')))
 
   tags = []
@@ -95,7 +95,13 @@ CloudFormation do
   distribution_config[:Enabled] = external_parameters[:enabled]
   distribution_config[:IPV6Enabled] = ipv6 unless ipv6.nil?
   distribution_config[:PriceClass] = Ref('PriceClass')
-  distribution_config[:WebACLId] = FnIf('WebACLEnabled', Ref('WebACL'), Ref('AWS::NoValue'))
+
+  CloudFormation_WaitConditionHandle(:WAF) do
+    Type 'AWS::CloudFormation::WaitConditionHandle'
+  end
+  dependencies_list << :WAF
+  distribution_config[:WebACLId] = Ref('WebACL')
+
   distribution_config[:CustomErrorResponses] = custom_error_responses unless custom_error_responses.nil?
 
   logs = external_parameters.fetch(:logs, {})
@@ -261,6 +267,7 @@ CloudFormation do
   end
 
   CloudFront_Distribution(:Distribution) {
+    DependsOn dependencies_list
     DistributionConfig distribution_config
     Tags tags
   }
