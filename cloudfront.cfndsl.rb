@@ -1,5 +1,7 @@
 CloudFormation do
 
+  origins = external_parameters.fetch(:origins, {})
+  
   dependencies_list = []
   cloudfront_component_name = external_parameters.fetch(:cloudfront_component_name, nil)
   if !cloudfront_component_name.nil?
@@ -31,7 +33,7 @@ CloudFormation do
   end
   distribution_config[:Origins] = []
 
-  origins = external_parameters.fetch(:origins, {})
+
   origins.each do |id,config|
     origin={
       Id: id,
