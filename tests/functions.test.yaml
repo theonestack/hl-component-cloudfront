@@ -3,7 +3,6 @@ test_metadata:
   name: functions
   description: Create cloudfront functions
 
-
 origins:
   myapploadbalancer:
     source: loadbalancer
@@ -30,6 +29,7 @@ functions:
       if (uri.endsWith('/')) { request.uri += 'index.html'; }
       else if (!uri.includes('.')) { request.uri += '/index.html'; }
       return request;
+      }
 
 behaviours:
   default:
