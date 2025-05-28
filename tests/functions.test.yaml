@@ -42,7 +42,7 @@ behaviours:
       - POST
       - DELETE
     TargetOriginId: myapploadbalancer
-    FunctionAssociation:
+    FunctionAssociations:
       EventType: viewer-request # viewer-request|viewer-response|origin-request|origin-response
       Function: default-viewer-request
     ForwardedValues:
