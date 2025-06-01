@@ -202,7 +202,7 @@ CloudFormation do
       func_conf['KeyValueStoreAssociations'] = fconfig['KeyValueStoreAssociations'] if fconfig.has_key?('KeyValueStoreAssociations')
       CloudFront_Function("#{func_safe}CloudFrontFunction") do
         AutoPublish fconfig.has_key?('AutoPublish') ? fconfig['AutoPublish'] : true
-        FunctionCode fconfig['code']
+        FunctionCode ((fconfig['code'] if fconfig.has_key?('code')) || (fconfig['FunctionCode'] if fconfig.has_key?('FunctionCode')))
         Name fconfig.has_key?('Name') ? fconfig['Name'] : func
         FunctionConfig func_conf
       end

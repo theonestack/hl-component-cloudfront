@@ -22,7 +22,12 @@ functions:
       return request;
       }
   custom-viewer-request:
-    code: |
+    Name:
+      Fn::Join:
+        - '-'
+        - - Ref: EnvironmentName
+          - custom-viewer-request
+    FunctionCode: |
       async function handler(event) {
       const request = event.request;
       const uri = request.uri;
@@ -61,5 +66,5 @@ behaviours:
         - OPTIONS
       Compress: true
       TargetOriginId: myapploadbalancer
-      FunctionAssociation:
+      FunctionAssociations:
         Function: custom-viewer-request
