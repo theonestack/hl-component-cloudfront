@@ -33,7 +33,6 @@ CloudFormation do
   end
   distribution_config[:Origins] = []
 
-
   origins.each do |id,config|
     origin={
       Id: id,
@@ -153,7 +152,7 @@ CloudFormation do
       cache_policy_config[:DefaultTTL] = policy_config.has_key?('DefaultTTL') ? policy_config['DefaultTTL'] : Ref('DefaultTTL')
       cache_policy_config[:MaxTTL] = policy_config.has_key?('MaxTTL') ? policy_config['MaxTTL'] : Ref('MaxTTL')
       cache_policy_config[:MinTTL] = policy_config.has_key?('MinTTL') ? policy_config['MinTTL'] : Ref('MinTTL')
-      cache_policy_config[:Name] = policy_config.has_key?('Name') ? policy_config['Name'] : "#{component_name}-#{policy}"
+      cache_policy_config[:Name] = policy_config.has_key?('Name') ? policy_config['Name'] : FnJoin('-', [Ref('EnvironmentName'), "#{component_name}-#{policy}"])
       cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin] = {}
       cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:CookiesConfig] = {}
       cache_policy_config[:ParametersInCacheKeyAndForwardedToOrigin][:CookiesConfig][:CookieBehavior] = policy_config.has_key?('CookieBehavior') ? policy_config['CookieBehavior'] : "none"
@@ -177,7 +176,7 @@ CloudFormation do
     origin_request_policies.each do |request_policy, policy_config|
       request_policy_config = {}
       request_policy_config[:Comment] = policy_config['Comment'] if policy_config.has_key?('Comment')
-      request_policy_config[:Name] = policy_config.has_key?('Name') ? policy_config['Name'] : "#{component_name}-#{request_policy}"
+      request_policy_config[:Name] = policy_config.has_key?('Name') ? policy_config['Name'] : FnJoin('-', [Ref('EnvironmentName'), "#{component_name}-#{request_policy}"])
       request_policy_config[:CookiesConfig] = {}
       request_policy_config[:CookiesConfig][:CookieBehavior] = policy_config.has_key?('CookieBehavior') ? policy_config['CookieBehavior'] : "none"
       request_policy_config[:CookiesConfig][:Cookies] = policy_config['Cookies'] if policy_config.has_key?('Cookies')
