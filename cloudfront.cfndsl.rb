@@ -209,21 +209,21 @@ CloudFormation do
     }
   end
 
-    # Functions
-    functions = external_parameters.fetch(:functions, {})
-    functions.each do |func, fconfig|
-      func_safe = func.gsub(/[-_.]/,"")
-      func_conf = {}
-      func_conf['Comment'] = fconfig.has_key?('Comment') ? fconfig['Comment'] : FnJoin(" ", ["The", func, "CloudFrontFunction"])
-      func_conf['Runtime'] = fconfig.has_key?('Runtime') ? fconfig['Runtime'] : "cloudfront-js-2.0"
-      func_conf['KeyValueStoreAssociations'] = fconfig['KeyValueStoreAssociations'] if fconfig.has_key?('KeyValueStoreAssociations')
-      CloudFront_Function("#{func_safe}CloudFrontFunction") do
-        AutoPublish fconfig.has_key?('AutoPublish') ? fconfig['AutoPublish'] : true
-        FunctionCode fconfig['code']
-        Name fconfig.has_key?('Name') ? fconfig['Name'] : func_safe
-        FunctionConfig func_conf
-      end
+  # Functions
+  functions = external_parameters.fetch(:functions, {})
+  functions.each do |func, fconfig|
+    func_safe = func.gsub(/[-_.]/,"")
+    func_conf = {}
+    func_conf['Comment'] = fconfig.has_key?('Comment') ? fconfig['Comment'] : FnJoin(" ", ["The", func, "CloudFrontFunction"])
+    func_conf['Runtime'] = fconfig.has_key?('Runtime') ? fconfig['Runtime'] : "cloudfront-js-2.0"
+    func_conf['KeyValueStoreAssociations'] = fconfig['KeyValueStoreAssociations'] if fconfig.has_key?('KeyValueStoreAssociations')
+    CloudFront_Function("#{func_safe}CloudFrontFunction") do
+      AutoPublish fconfig.has_key?('AutoPublish') ? fconfig['AutoPublish'] : true
+      FunctionCode FunctionCode ((fconfig['code'] if fconfig.has_key?('code')) || (fconfig['FunctionCode'] if fconfig.has_key?('FunctionCode')))
+      Name fconfig.has_key?('Name') ? fconfig['Name'] : func
+      FunctionConfig func_conf
     end
+  end
   
     # Cache behaviours
     behaviours = external_parameters.fetch(:behaviours, {})
