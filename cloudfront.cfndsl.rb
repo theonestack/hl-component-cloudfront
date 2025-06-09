@@ -108,7 +108,7 @@ CloudFormation do
   distribution_config[:Enabled] = external_parameters[:enabled]
   distribution_config[:IPV6Enabled] = ipv6 unless ipv6.nil?
   distribution_config[:PriceClass] = Ref('PriceClass')
-  distribution_config[:WebACLId] = FnIf('WebACLEnabled', Ref('WebACL'), Ref('AWS::NoValue'))
+  distribution_config[:WebACLId] = FnIf('WebACLEnabled', Ref('WebACL'), Ref('AWS::NoValue')) # WebACL issue part
   distribution_config[:CustomErrorResponses] = custom_error_responses unless custom_error_responses.nil?
 
   logs = external_parameters.fetch(:logs, {})
