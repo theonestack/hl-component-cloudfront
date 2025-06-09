@@ -18,7 +18,7 @@ CloudFormation do
   
   export = external_parameters.fetch(:export_name, external_parameters[:component_name])
 
-  Condition('WebACLEnabled', FnNot(FnEquals(Ref('WebACL'), '')))
+  Condition('WebACLEnabled', FnNot(FnEquals(Ref('WebACL'), ''))) # WebACL issue part, works well without this condition
   Condition('OverrideAliases', FnNot(FnEquals(Ref('OverrideAliases'), '')))
 
   tags = []
@@ -27,15 +27,14 @@ CloudFormation do
 
   distribution_config = {}
   if (comment.to_s.start_with?('{"Fn::'))
-    distribution_config[:Comment] =  comment
+    distribution_config[:Comment] = comment
   else
     distribution_config[:Comment] = FnSub(comment)
   end
   distribution_config[:Origins] = []
 
-
-  origins.each do |id,config|
-    origin={
+  origins.each do |id, config|
+    origin = {
       Id: id,
       DomainName: Ref("#{id}OriginDomainName")
     }
@@ -44,6 +43,7 @@ CloudFormation do
     case config['source']
     when 'vpc'
       if config.has_key?("arn")
+          config['default-caching-policy-id'] = '83da9c7e-98b4-4e11-a168-04f0df8e2c65'
           vpc_origin_config = {}
           vpc_origin_config[:HTTPPort] = config.has_key?('http_port') ? config["http_port"] : 80
           vpc_origin_config[:HTTPSPort] = config.has_key?('https_port') ? config["https_port"] : 443
@@ -61,13 +61,14 @@ CloudFormation do
           origin[:VpcOriginConfig][:VpcOriginId] = Ref("#{id}VPCOrigin")
       end
     when 'loadbalancer', 'apigateway'
+      config['default-caching-policy-id'] = '83da9c7e-98b4-4e11-a168-04f0df8e2c65'
       origin[:CustomOriginConfig] = { HTTPPort: '80', HTTPSPort: '443' }
       origin[:CustomOriginConfig][:OriginKeepaliveTimeout] = config["keep_alive_timeout"] if config.has_key?('keep_alive_timeout')
       origin[:CustomOriginConfig][:OriginReadTimeout] = config["read_timeout"] if config.has_key?('read_timeout')
       origin[:CustomOriginConfig][:OriginSSLProtocols] = config['ssl_policy'] if config.has_key?('ssl_policy')
       origin[:CustomOriginConfig][:OriginProtocolPolicy] = config['protocol_policy']
     when 's3'
-
+      config['default-caching-policy-id'] = '658327ea-f89d-4fab-a63d-7e88639e58f6'
       use_access_identity = external_parameters.fetch(:use_access_identity, false)
       if (use_access_identity == true)
         CloudFront_CloudFrontOriginAccessIdentity("#{id}OriginAccessIdentity") {
@@ -76,7 +77,6 @@ CloudFormation do
           })
         }
         origin[:S3OriginConfig] = { OriginAccessIdentity: FnSub("origin-access-identity/cloudfront/${#{id}OriginAccessIdentity}") }
-
         Output("#{id}OriginAccessIdentity") do
           Value(FnGetAtt("#{id}OriginAccessIdentity", 'S3CanonicalUserId'))
         end
@@ -96,11 +96,8 @@ CloudFormation do
           Value Ref("#{id}OriginAccessControl")
         end
       end
-
     end
-
     distribution_config[:Origins] << origin
-
   end
 
   default_root_object = external_parameters.fetch(:default_root_object, nil)
