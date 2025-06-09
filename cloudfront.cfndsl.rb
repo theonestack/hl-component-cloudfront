@@ -169,26 +169,26 @@ CloudFormation do
     }
   end
 
-    # Origin request policies
-    origin_request_policies = external_parameters.fetch(:origin_request_policies, {})
-    origin_request_policies.each do |request_policy, policy_config|
-      request_policy_config = {}
-      request_policy_config[:Comment] = policy_config['Comment'] if policy_config.has_key?('Comment')
-      request_policy_config[:Name] = policy_config.has_key?('Name') ? policy_config['Name'] : "#{component_name}-#{request_policy}"
-      request_policy_config[:CookiesConfig] = {}
-      request_policy_config[:CookiesConfig][:CookieBehavior] = policy_config.has_key?('CookieBehavior') ? policy_config['CookieBehavior'] : "none"
-      request_policy_config[:CookiesConfig][:Cookies] = policy_config['Cookies'] if policy_config.has_key?('Cookies')
-      request_policy_config[:HeadersConfig] = {}
-      request_policy_config[:HeadersConfig][:HeaderBehavior] = policy_config.has_key?('HeaderBehavior') ? policy_config['HeaderBehavior'] : 'none'
-      request_policy_config[:HeadersConfig][:Headers] = policy_config['Headers'] if policy_config.has_key?('Headers')
-      request_policy_config[:QueryStringsConfig] = {}
-      request_policy_config[:QueryStringsConfig][:QueryStringBehavior] = policy_config.has_key?('QueryStringBehavior') ? policy_config['QueryStringBehavior'] : 'none'
-      request_policy_config[:QueryStringsConfig][:QueryStrings] = policy_config['QueryStrings'] if policy_config.has_key?('QueryStrings')
-      request_policy_safe = request_policy.gsub(/[-_.]/,"")
-      CloudFront_OriginRequestPolicy("#{request_policy_safe}CloudFrontOriginRequestPolicy") {
-        OriginRequestPolicyConfig request_policy_config
-      }
-    end
+  # Origin request policies
+  origin_request_policies = external_parameters.fetch(:origin_request_policies, {})
+  origin_request_policies.each do |request_policy, policy_config|
+    request_policy_config = {}
+    request_policy_config[:Comment] = policy_config['Comment'] if policy_config.has_key?('Comment')
+    request_policy_config[:Name] = policy_config.has_key?('Name') ? policy_config['Name'] : FnJoin('-', [Ref('EnvironmentName'), "#{component_name}-#{request_policy}"])
+    request_policy_config[:CookiesConfig] = {}
+    request_policy_config[:CookiesConfig][:CookieBehavior] = policy_config.has_key?('CookieBehavior') ? policy_config['CookieBehavior'] : "none"
+    request_policy_config[:CookiesConfig][:Cookies] = policy_config['Cookies'] if policy_config.has_key?('Cookies')
+    request_policy_config[:HeadersConfig] = {}
+    request_policy_config[:HeadersConfig][:HeaderBehavior] = policy_config.has_key?('HeaderBehavior') ? policy_config['HeaderBehavior'] : 'none'
+    request_policy_config[:HeadersConfig][:Headers] = policy_config['Headers'] if policy_config.has_key?('Headers')
+    request_policy_config[:QueryStringsConfig] = {}
+    request_policy_config[:QueryStringsConfig][:QueryStringBehavior] = policy_config.has_key?('QueryStringBehavior') ? policy_config['QueryStringBehavior'] : 'none'
+    request_policy_config[:QueryStringsConfig][:QueryStrings] = policy_config['QueryStrings'] if policy_config.has_key?('QueryStrings')
+    request_policy_safe = request_policy.gsub(/[-_.]/,"")
+    CloudFront_OriginRequestPolicy("#{request_policy_safe}CloudFrontOriginRequestPolicy") {
+      OriginRequestPolicyConfig request_policy_config
+    }
+  end
 
     # Functions
     functions = external_parameters.fetch(:functions, {})
