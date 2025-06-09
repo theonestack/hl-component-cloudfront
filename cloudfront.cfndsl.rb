@@ -190,6 +190,25 @@ CloudFormation do
     }
   end
 
+  # Response headers policies
+  response_headers_policies = external_parameters.fetch(:response_headers_policies, {})
+  response_headers_policies.each do |response_policy, policy_config|
+    response_headers_policy_config = {}
+    response_headers_policy_config[:Comment] = policy_config['Comment'] if policy_config.has_key?('Comment')
+    response_headers_policy_config[:CorsConfig] = policy_config['CorsConfig'] if policy_config.has_key?('CorsConfig')
+    response_headers_policy_config[:CustomHeadersConfig] = {} if policy_config.has_key?('CustomHeadersConfig')
+    response_headers_policy_config[:CustomHeadersConfig]['Items'] = policy_config['CustomHeadersConfig'] if policy_config.has_key?('CustomHeadersConfig')
+    response_headers_policy_config[:Name] = policy_config.has_key?('Name') ? policy_config['Name'] : FnJoin('-', [Ref('EnvironmentName'), "#{component_name}-#{response_policy}"])
+    response_headers_policy_config[:RemoveHeadersConfig] = {} if policy_config.has_key?('RemoveHeadersConfig')
+    response_headers_policy_config[:RemoveHeadersConfig]['Items'] = policy_config['RemoveHeadersConfig'] if policy_config.has_key?('RemoveHeadersConfig')
+    response_headers_policy_config[:SecurityHeadersConfig] = policy_config['SecurityHeadersConfig'] if policy_config.has_key?('SecurityHeadersConfig')
+    response_headers_policy_config[:ServerTimingHeadersConfig] = policy_config['ServerTimingHeadersConfig'] if policy_config.has_key?('ServerTimingHeadersConfig')
+    response_policy_safe = response_policy.gsub(/[-_.]/,"")
+    CloudFront_ResponseHeadersPolicy("#{response_policy_safe}CloudFrontResponseHeadersPolicy") {
+      ResponseHeadersPolicyConfig response_headers_policy_config
+    }
+  end
+
     # Functions
     functions = external_parameters.fetch(:functions, {})
     functions.each do |func, fconfig|
