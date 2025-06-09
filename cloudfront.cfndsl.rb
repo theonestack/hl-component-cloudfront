@@ -352,40 +352,44 @@ CloudFormation do
     end
   end
 
-  CloudFront_Distribution(:Distribution) {
-    DependsOn dependencies_list
-    DistributionConfig distribution_config
-    Tags tags
-  }
+  if (distribution_config.has_key?(:DefaultCacheBehavior) and (!distribution_config[:DefaultCacheBehavior].nil?))
 
-  dns_records = external_parameters.fetch(:dns_records, {})
-  dns_records.each_with_index do |record, index|
-    if (dns_format.to_s.start_with?('{"Fn::'))
-      name = (['apex',''].include? record) ? FnJoin('', [dns_format]) : FnJoin('.', [record, dns_format])
-      zone_name = FnJoin('', [dns_format, '.'])
-    else
-      name = (['apex',''].include? record) ? FnSub("#{dns_format}") : FnSub("#{record}.#{dns_format}")
-      zone_name = FnSub("#{dns_format}.")
+    CloudFront_Distribution(:Distribution) {
+      DependsOn dependencies_list
+      DistributionConfig distribution_config
+      Tags tags
+    }
+
+    dns_records = external_parameters.fetch(:dns_records, {})
+    dns_records.each_with_index do |record, index|
+      if (dns_format.to_s.start_with?('{"Fn::'))
+        name = (['apex',''].include? record) ? FnJoin('', [dns_format]) : FnJoin('.', [record, dns_format])
+        zone_name = FnJoin('', [dns_format, '.'])
+      else
+        name = (['apex',''].include? record) ? FnSub("#{dns_format}") : FnSub("#{record}.#{dns_format}")
+        zone_name = FnSub("#{dns_format}.")
+      end
+      Route53_RecordSet("CloudfrontDns#{index}") do
+        HostedZoneName zone_name
+        Name name
+        Type 'A'
+        AliasTarget ({
+            DNSName: FnGetAtt(:Distribution, :DomainName),
+            HostedZoneId: 'Z2FDTNDATAQYW2'
+        })
+      end
     end
-    Route53_RecordSet("CloudfrontDns#{index}") do
-      HostedZoneName zone_name
-      Name name
-      Type 'A'
-      AliasTarget ({
-          DNSName: FnGetAtt(:Distribution, :DomainName),
-          HostedZoneId: 'Z2FDTNDATAQYW2'
-      })
+
+    Output('DomainName') do
+      Value(FnGetAtt('Distribution', 'DomainName'))
+      Export FnJoin("-", [Ref("EnvironmentName"), export, "DomainName"])
     end
-  end
 
-  Output('DomainName') do
-    Value(FnGetAtt('Distribution', 'DomainName'))
-    Export FnJoin("-", [Ref("EnvironmentName"), export, "DomainName"])
-  end
+    Output('DistributionId') do
+      Value(FnGetAtt('Distribution', 'Id'))
+      Export FnJoin("-", [Ref("EnvironmentName"), export, "DistributionId"])
+    end
 
-  Output('DistributionId') do
-    Value(FnGetAtt('Distribution', 'Id'))
-    Export FnJoin("-", [Ref("EnvironmentName"), export, "DistributionId"])
   end
 
 end
