@@ -3,12 +3,10 @@ test_metadata:
   name: functions
   description: Create cloudfront functions
 
-
 origins:
   myapploadbalancer:
     source: loadbalancer
-    # http-only | match-viewer | https-only
-    protocol_policy: https-only
+    protocol_policy: https-only # http-only|match-viewer|https-only
     ssl_protocols:
       - TLSv1.2
 
@@ -23,13 +21,20 @@ functions:
       return request;
       }
   custom-viewer-request:
-    code: |
+    Name:
+      Fn::Join:
+        - '-'
+        - - Ref: EnvironmentName
+          - custom-viewer-request
+  #`FunctionCode` or `code`
+    FunctionCode: |
       async function handler(event) {
       const request = event.request;
       const uri = request.uri;
       if (uri.endsWith('/')) { request.uri += 'index.html'; }
       else if (!uri.includes('.')) { request.uri += '/index.html'; }
       return request;
+      }
 
 behaviours:
   default:
@@ -42,14 +47,14 @@ behaviours:
       - POST
       - DELETE
     TargetOriginId: myapploadbalancer
-    FunctionAssociation:
+    FunctionAssociations:
       EventType: viewer-request # viewer-request|viewer-response|origin-request|origin-response
       Function: default-viewer-request
     ForwardedValues:
       Headers:
         - "CloudFront-Viewer-Country"
       Cookies:
-        Forward: all  # none  # Drift detected on STAGE and PROD as well
+        Forward: all
       QueryString: true
     ViewerProtocolPolicy: redirect-to-https # allow-all|redirect-to-https|https-only
   custom:
@@ -61,5 +66,5 @@ behaviours:
         - OPTIONS
       Compress: true
       TargetOriginId: myapploadbalancer
-      FunctionAssociation:
+      FunctionAssociations:
         Function: custom-viewer-request
