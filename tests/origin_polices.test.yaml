@@ -3,33 +3,28 @@ test_metadata:
   name: origin policies
   description: Create custom cache policies
 
-
 origins:
   myapploadbalancer:
     source: loadbalancer
-    # http-only | match-viewer | https-only
-    protocol_policy: https-only
+    protocol_policy: https-only # http-only|match-viewer|https-only
     ssl_protocols:
       - TLSv1.2
 
 origin_request_policies:
   origin-full:
     Comment: the origin request policy for here
-    CookieBehavior: none  # none|whitelist|allExcept|all   Required
+    CookieBehavior: whitelist # none|whitelist|allExcept|all
     Cookies:
       - someValue
-    HeaderBehavior: none  # none|whitelist Required
+    HeaderBehavior: whitelist
     Headers:
       - Host
       - CloudFront-Viewer-Country
-    Name: Policy-for-here # Required
-    QueryStringBehavior:  none # none|whitelist|all|allExcept   Required
-    QueryStrings:
-      - someValue
+    Name: Policy-for-here
+    QueryStringBehavior: none
   origin-minimal:
     Headers:
       - Host
-
 
 behaviours:
   default:
@@ -47,7 +42,7 @@ behaviours:
       Headers:
         - "CloudFront-Viewer-Country"
       Cookies:
-        Forward: all  # none  # Drift detected on STAGE and PROD as well
+        Forward: all
       QueryString: true
     ViewerProtocolPolicy: redirect-to-https # allow-all|redirect-to-https|https-only
   custom:
