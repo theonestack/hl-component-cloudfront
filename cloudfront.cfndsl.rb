@@ -225,47 +225,107 @@ CloudFormation do
     end
   end
   
-    # Cache behaviours
-    behaviours = external_parameters.fetch(:behaviours, {})
-    behaviours.each do |behaviour, config|
-      if behaviour == 'default'
-        if (config.has_key?('CachePolicyId'))
+  # Cache behaviours
+  behaviours = external_parameters.fetch(:behaviours, {})
+  behaviours.each do |behaviour, config|
+    if behaviour == 'default'
+    # What if origin does not exists? - perform check
+      if (config.has_key?('TargetOriginId') and (!config['TargetOriginId'].nil?) and (origins.keys.include? config['TargetOriginId']))
+        # What if the caching policy not defined? - perform check
+        if (config.has_key?('CachePolicyId') and (!config['CachePolicyId'].nil?) and (cache_policies.keys.include? config['CachePolicyId']))
           config.delete('ForwardedValues')
           policy_safe = config['CachePolicyId'].gsub(/[-_.]/,"")
           config['CachePolicyId'] = { "Ref" => "#{policy_safe}CloudFrontCachePolicy" }
-        end
-        request_policy_safe = config['OriginRequestPolicyId'].gsub(/[-_.]/,"") if config.has_key?('OriginRequestPolicyId')
-        config['OriginRequestPolicyId'] = { "Ref" => "#{request_policy_safe}CloudFrontOriginRequestPolicy" } if config.has_key?('OriginRequestPolicyId')
-        if config.has_key?('FunctionAssociation')
-          if config['FunctionAssociation'].has_key?('Function')
-            func_safe = config['FunctionAssociation']['Function'].gsub(/[-_.]/,"")
-            config['FunctionAssociation'].delete('Function')
-            config['FunctionAssociation']['EventType'] = 'viewer-request' if not config['FunctionAssociation'].has_key?('EventType')
-            config['FunctionAssociation']['FunctionARN'] = FnGetAtt("#{func_safe}CloudFrontFunction", "FunctionARN")
-          end
-        end
-        distribution_config[:DefaultCacheBehavior] = config
-      else
-        config.each do |x|
-          if (x.has_key?('CachePolicyId'))
-            x.delete('ForwardedValues')
-            policy_safe = x['CachePolicyId'].gsub(/[-_.]/,"")
-            x['CachePolicyId'] = { "Ref" => "#{policy_safe}CloudFrontCachePolicy" }
-          end
-          request_policy_safe = x['OriginRequestPolicyId'].gsub(/[-_.]/,"") if x.has_key?('OriginRequestPolicyId')
-          x['OriginRequestPolicyId'] = { "Ref" => "#{request_policy_safe}CloudFrontOriginRequestPolicy" } if x.has_key?('OriginRequestPolicyId')
-          if x.has_key?('FunctionAssociation')
-            if x['FunctionAssociation'].has_key?('Function')
-              func_safe = x['FunctionAssociation']['Function'].gsub(/[-_.]/,"")
-              x['FunctionAssociation'].delete('Function')
-              x['FunctionAssociation']['EventType'] = 'viewer-request' if not x['FunctionAssociation'].has_key?('EventType')
-              x['FunctionAssociation']['FunctionARN'] = FnGetAtt("#{func_safe}CloudFrontFunction", "FunctionARN")
+        else
+          config['CachePolicyId'] = origins[config['TargetOriginId']]['default-caching-policy-id']
+          if (config.has_key?('OriginRequestPolicyId') and (not config['OriginRequestPolicyId'].nil?))
+            if (origin_request_policies.has_key?(config['OriginRequestPolicyId']) and (origin_request_policies[config['OriginRequestPolicyId']]['QueryStringBehavior'] != 'none'))
+              config['CachePolicyId'] = '4cc15a8a-d715-48a4-82b8-cc0b614638fe' # UseOriginCacheControlHeaders-QueryStrings
             end
           end
         end
-        distribution_config[:CacheBehaviors] = config
+        # What if the request policy not defined? - perform check
+        if (config.has_key?('OriginRequestPolicyId') and (!config['OriginRequestPolicyId'].nil?) and (origin_request_policies.keys.include? config['OriginRequestPolicyId']))
+          request_policy_safe = config['OriginRequestPolicyId'].gsub(/[-_.]/,"")
+          config['OriginRequestPolicyId'] = { "Ref" => "#{request_policy_safe}CloudFrontOriginRequestPolicy" }
+        else
+          config.delete('OriginRequestPolicyId')
+        end
+        # What if the response headers policy not defined? - perform check
+        if (config.has_key?('ResponseHeadersPolicyId') and (!config['ResponseHeadersPolicyId'].nil?) and (response_headers_policies.keys.include? config['ResponseHeadersPolicyId']))
+          response_policy_safe = config['ResponseHeadersPolicyId'].gsub(/[-_.]/,"")
+          config['ResponseHeadersPolicyId'] = { "Ref" => "#{response_policy_safe}CloudFrontResponseHeadersPolicy" }
+        else
+          config.delete('ResponseHeadersPolicyId')
+        end
+        if config.has_key?('FunctionAssociations')
+          config['FunctionAssociations'].uniq{ |k| k['EventType'] }.each do |assoc|
+            # What if function is not defined? - perform check
+            if (assoc.has_key?('Function') and (!assoc['Function'].nil?) and (functions.keys.include? assoc['Function']))
+              func_safe = assoc['Function'].gsub(/[-_.]/,"")
+              assoc['EventType'] = 'viewer-request' if not assoc.has_key?('EventType')
+              assoc['FunctionARN'] = FnGetAtt("#{func_safe}CloudFrontFunction", "FunctionARN")
+              assoc.delete('Function') if assoc.has_key?('Function')
+            else
+              config['FunctionAssociations'].delete(assoc)
+            end
+          end
+        end
+        distribution_config[:DefaultCacheBehavior] = config
+      end
+    else
+      config.each do |x|
+      # What if origin does not exists? - perform check
+        if (x.has_key?('TargetOriginId') and (!x['TargetOriginId'].nil?) and (origins.keys.include? x['TargetOriginId']))
+          # What if the caching policy not defined? - perform check
+          if (x.has_key?('CachePolicyId') and (!x['CachePolicyId'].nil?) and (cache_policies.keys.include? x['CachePolicyId']))
+            x.delete('ForwardedValues')
+            policy_safe = x['CachePolicyId'].gsub(/[-_.]/,"")
+            x['CachePolicyId'] = { "Ref" => "#{policy_safe}CloudFrontCachePolicy" }
+          else
+            x['CachePolicyId'] = origins[x['TargetOriginId']]['default-caching-policy-id']
+            if (x.has_key?('OriginRequestPolicyId') and (not x['OriginRequestPolicyId'].nil?))
+              if (origin_request_policies.has_key?(x['OriginRequestPolicyId']) and (origin_request_policies[x['OriginRequestPolicyId']]['QueryStringBehavior'] != 'none'))
+                x['CachePolicyId'] = '4cc15a8a-d715-48a4-82b8-cc0b614638fe' # UseOriginCacheControlHeaders-QueryStrings
+              end
+            end
+          end
+          # What if the request policy not defined? - perform check
+          if (x.has_key?('OriginRequestPolicyId') and (!x['OriginRequestPolicyId'].nil?) and (origin_request_policies.keys.include? x['OriginRequestPolicyId']))
+            request_policy_safe = x['OriginRequestPolicyId'].gsub(/[-_.]/,"")
+            x['OriginRequestPolicyId'] = { "Ref" => "#{request_policy_safe}CloudFrontOriginRequestPolicy" }
+          else
+            x.delete('OriginRequestPolicyId')
+          end
+          # What if the response headers policy not defined? - perform check
+          if (x.has_key?('ResponseHeadersPolicyId') and (!x['ResponseHeadersPolicyId'].nil?) and (response_headers_policies.keys.include? x['ResponseHeadersPolicyId']))
+            response_policy_safe = x['ResponseHeadersPolicyId'].gsub(/[-_.]/,"")
+            x['ResponseHeadersPolicyId'] = { "Ref" => "#{response_policy_safe}CloudFrontResponseHeadersPolicy" }
+          else
+            x.delete('ResponseHeadersPolicyId')
+          end
+          if x.has_key?('FunctionAssociations')
+            x['FunctionAssociations'].uniq{ |k| k['EventType'] }.each do |assoc|
+              # What if function is not defined? - perform check
+              if (assoc.has_key?('Function') and (!assoc['Function'].nil?) and (functions.keys.include? assoc['Function']))
+                func_safe = assoc['Function'].gsub(/[-_.]/,"")
+                assoc['EventType'] = 'viewer-request' if not assoc.has_key?('EventType')
+                assoc['FunctionARN'] = FnGetAtt("#{func_safe}CloudFrontFunction", "FunctionARN")
+                assoc.delete('Function') if assoc.has_key?('Function')
+              else
+                x['FunctionAssociations'].delete(assoc)
+              end
+            end
+          end
+        else
+          config.delete(x)
+        end
+        if (config.length()>0)
+          distribution_config[:CacheBehaviors] = config
+        end
       end
     end
+  end
 
   # Aliases
   aliases_map = external_parameters.fetch(:aliases_map, {})
