@@ -48,8 +48,8 @@ behaviours:
       - DELETE
     TargetOriginId: myapploadbalancer
     FunctionAssociations:
-      EventType: viewer-request # viewer-request|viewer-response|origin-request|origin-response
-      Function: default-viewer-request
+      - EventType: viewer-request # viewer-request|viewer-response|origin-request|origin-response
+        Function: default-viewer-request
     ForwardedValues:
       Headers:
         - "CloudFront-Viewer-Country"
@@ -67,4 +67,4 @@ behaviours:
       Compress: true
       TargetOriginId: myapploadbalancer
       FunctionAssociations:
-        Function: custom-viewer-request
+        - Function: custom-viewer-request
