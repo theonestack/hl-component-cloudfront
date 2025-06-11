@@ -1,14 +1,11 @@
-
 dns_format: ${EnvironmentName}.${DnsDomain}
 
-# true | false
 enabled: true
 comment: ${EnvironmentName} distribution
 export_name: cloudfront
-#default_root_object: index.html
+# default_root_object: index.html
 
-# http1.1 | http2
-http_version: http2
+http_version: http2 # http1.1|http2
 # ipv6: false
 
 # custom_error_responses:
@@ -23,20 +20,16 @@ http_version: http2
 #     source: loadbalancer
 #     protocol_policy: https-only
 #     custom_headers:
-        # - HeaderName: x-test-header
-        #   HeaderValue: desiredvalue
+#         - HeaderName: x-test-header
+#           HeaderValue: desiredvalue
 
 ssl:
-  # acm | cloudfront | iam
-  type: cloudfront
-  # sni-only | vip
-  support_method: sni-only
-  # SSLv3 | TLSv1 | TLSv1_2016 | TLSv1.1_2016 | TLSv1.2_2018
-  minimum_protocol_version: TLSv1.2_2018
+  type: cloudfront # acm|cloudfront|iam
+  support_method: sni-only # sni-only|vip
+  minimum_protocol_version: TLSv1.2_2018 # SSLv3|TLSv1|TLSv1_2016|TLSv1.1_2016|TLSv1.2_2018
 
 behaviours:
   default:
-    # GET, HEAD, OPTIONS, PUT, PATCH, POST, and DELETE
     AllowedMethods:
       - GET
       - HEAD
@@ -46,8 +39,7 @@ behaviours:
       Cookies:
         Forward: none
       QueryString: true
-    # allow-all | redirect-to-https | https-only
-    ViewerProtocolPolicy: redirect-to-https
+    ViewerProtocolPolicy: redirect-to-https # allow-all|redirect-to-https|https-only
   # nondefaultcachebehaviours:
   #   -
   #     AllowedMethods:
@@ -60,7 +52,6 @@ behaviours:
   #       Cookies:
   #         Forward: none
   #       QueryString: false
-  #     # allow-all | redirect-to-https | https-only
   #     ViewerProtocolPolicy: redirect-to-https
   #     PathPattern: /index.html
 

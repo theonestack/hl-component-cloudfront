@@ -3,11 +3,9 @@ test_metadata:
   name: cache policies
   description: Create custom cache policies
 
-
 origins:
   myapploadbalancer:
     source: loadbalancer
-    # http-only | match-viewer | https-only
     protocol_policy: https-only
     ssl_protocols:
       - TLSv1.2
@@ -15,16 +13,16 @@ origins:
 cache_policies:
   full:
     Comment: Full Cache Policy
-    DefaultTTL: 86400     # Required
-    MaxTTL: 31536000      # Required
-    MinTTL: 0             # Required
-    Name: Full-Policy.    # Required
-    CookieBehavior: none  # none|whitelist|allExcept|all   Required
+    DefaultTTL: 86400
+    MaxTTL: 31536000
+    MinTTL: 0
+    Name: Full-Policy
+    CookieBehavior: whitelist
     Cookies:
       - someValue
     EnableAcceptEncodingBrotli: false
-    EnableAcceptEncodingGzip: true # Required
-    HeaderBehavior: none  # none|whitelist Required
+    EnableAcceptEncodingGzip: true
+    HeaderBehavior: whitelist
     Headers:
       - Host
       - CloudFront-Viewer-Country
@@ -32,6 +30,20 @@ cache_policies:
     Headers:
       - Host
       - CloudFront-Viewer-Country
+
+response_headers_policies:
+  resp:
+    Comment: The response headers policy
+    SecurityHeadersConfig:
+      ContentTypeOptions:
+        Override: true
+
+origin_request_policies:
+  origin-default:
+    Comment: the origin request policy for here
+    CookieBehavior: none
+    HeaderBehavior: allViewer
+    QueryStringBehavior: all
 
 behaviours:
   default:
@@ -49,9 +61,9 @@ behaviours:
       Headers:
         - "CloudFront-Viewer-Country"
       Cookies:
-        Forward: all  # none  # Drift detected on STAGE and PROD as well
+        Forward: all
       QueryString: true
-    ViewerProtocolPolicy: redirect-to-https # allow-all|redirect-to-https|https-only
+    ViewerProtocolPolicy: redirect-to-https
   custom:
     -
       PathPattern: /api*
@@ -62,3 +74,5 @@ behaviours:
       Compress: true
       TargetOriginId: myapploadbalancer
       CachePolicyId: minimal
+      OriginRequestPolicyId: origin-default
+      ResponseHeadersPolicyId: resp
