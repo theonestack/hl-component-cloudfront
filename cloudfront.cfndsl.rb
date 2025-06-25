@@ -18,7 +18,6 @@ CloudFormation do
   
   export = external_parameters.fetch(:export_name, external_parameters[:component_name])
 
-  Condition('WebACLEnabled', FnNot(FnEquals(Ref('WebACL'), ''))) # WebACL issue part, works well without this condition
   Condition('OverrideAliases', FnNot(FnEquals(Ref('OverrideAliases'), '')))
 
   tags = []
@@ -108,7 +107,7 @@ CloudFormation do
   distribution_config[:Enabled] = external_parameters[:enabled]
   distribution_config[:IPV6Enabled] = ipv6 unless ipv6.nil?
   distribution_config[:PriceClass] = Ref('PriceClass')
-  distribution_config[:WebACLId] = FnIf('WebACLEnabled', Ref('WebACL'), Ref('AWS::NoValue')) # WebACL issue part
+  distribution_config[:WebACLId] = Ref('WebACL')
   distribution_config[:CustomErrorResponses] = custom_error_responses unless custom_error_responses.nil?
 
   logs = external_parameters.fetch(:logs, {})
