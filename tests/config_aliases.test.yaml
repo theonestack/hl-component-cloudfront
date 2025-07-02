@@ -17,3 +17,7 @@ origins:
     protocol_policy: https-only
     ssl_protocols:
       - TLSv1.2
+
+behaviours:
+  default:
+    TargetOriginId: myapploadbalancer

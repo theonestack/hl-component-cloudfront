@@ -17,3 +17,7 @@ aliases_map:
 origins:
   mys3bucket:
     source: 's3'
+
+behaviours:
+  default:
+    TargetOriginId: mys3bucket

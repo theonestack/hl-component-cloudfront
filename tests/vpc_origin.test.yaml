@@ -26,3 +26,7 @@ origins:
     arn:
       Ref: cdncloudfrontALB
     origin_protocol_policy: match-viewer
+
+behaviours:
+  default:
+    TargetOriginId: lb

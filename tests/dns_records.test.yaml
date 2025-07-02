@@ -24,6 +24,9 @@ origins:
     ssl_protocols:
       - TLSv1.2
 
+behaviours:
+  default:
+    TargetOriginId: myapploadbalancer
 
 #####
 test_cases:

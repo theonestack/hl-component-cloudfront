@@ -16,3 +16,7 @@ origins:
     custom_headers:
       - HeaderName: x-test-header
         HeaderValue: sf5kfdfsa3mfkd4
+
+behaviours:
+  default:
+    TargetOriginId: myapploadbalancer
