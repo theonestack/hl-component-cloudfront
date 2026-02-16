@@ -83,7 +83,7 @@ CloudFormation do
         CloudFront_OriginAccessControl("#{id}OriginAccessControl") {
           OriginAccessControlConfig({
             Description: FnJoin("-", [Ref("EnvironmentName"), id, "CloudFrontOriginAccessControl"]),
-            Name: FnJoin('', [id, '.s3.', Ref('AWS::Region'), '.amazonaws.com']),
+            Name: FnJoin('', [Ref("EnvironmentName"), id, '.s3.', Ref('AWS::Region'), '.amazonaws.com']),
             OriginAccessControlOriginType: 's3',
             SigningBehavior: 'always',
             SigningProtocol: 'sigv4'
