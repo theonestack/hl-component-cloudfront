@@ -265,6 +265,8 @@ CloudFormation do
               assoc['EventType'] = 'viewer-request' if not assoc.has_key?('EventType')
               assoc['FunctionARN'] = FnGetAtt("#{func_safe}CloudFrontFunction", "FunctionARN")
               assoc.delete('Function') if assoc.has_key?('Function')
+            elsif (assoc.has_key?('FunctionArn') and (!assoc['FunctionArn'].nil?))
+              assoc['EventType'] = 'viewer-request' if not assoc.has_key?('EventType')
             else
               config['FunctionAssociations'].delete(assoc)
             end
@@ -311,6 +313,8 @@ CloudFormation do
                 assoc['EventType'] = 'viewer-request' if not assoc.has_key?('EventType')
                 assoc['FunctionARN'] = FnGetAtt("#{func_safe}CloudFrontFunction", "FunctionARN")
                 assoc.delete('Function') if assoc.has_key?('Function')
+              elsif(assoc.has_key?('FunctionArn') and (!assoc['FunctionArn'].nil?))
+                assoc['EventType'] = 'viewer-request' if not assoc.has_key?('EventType')
               else
                 x['FunctionAssociations'].delete(assoc)
               end
