@@ -68,3 +68,5 @@ behaviours:
       TargetOriginId: myapploadbalancer
       FunctionAssociations:
         - Function: custom-viewer-request
+        - FunctionArn: arn:aws:cloudfront::1234567890:function/MyFunction
+          EventType: viewer-response
