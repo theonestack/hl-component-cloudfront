@@ -64,7 +64,19 @@ behaviours:
         Forward: all
       QueryString: true
     ViewerProtocolPolicy: redirect-to-https
+    ResponseHeadersPolicyId: "60669652-455b-4ae9-85a4-c4c02393f86c" #SimpleCORS
   custom:
+    -
+      PathPattern: /with-managed-policy*
+      AllowedMethods:
+        - GET
+        - HEAD
+        - OPTIONS
+      Compress: true
+      TargetOriginId: myapploadbalancer
+      CachePolicyId: minimal
+      OriginRequestPolicyId: origin-default
+      ResponseHeadersPolicyId: "60669652-455b-4ae9-85a4-c4c02393f86c"
     -
       PathPattern: /api*
       AllowedMethods:

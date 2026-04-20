@@ -251,9 +251,11 @@ CloudFormation do
           config.delete('OriginRequestPolicyId')
         end
         # What if the response headers policy not defined? - perform check
-        if (config.has_key?('ResponseHeadersPolicyId') and (!config['ResponseHeadersPolicyId'].nil?) and (response_headers_policies.keys.include? config['ResponseHeadersPolicyId']))
-          response_policy_safe = config['ResponseHeadersPolicyId'].gsub(/[-_.]/,"")
-          config['ResponseHeadersPolicyId'] = { "Ref" => "#{response_policy_safe}CloudFrontResponseHeadersPolicy" }
+        if (config.has_key?('ResponseHeadersPolicyId') and (!config['ResponseHeadersPolicyId'].nil?))
+          if response_headers_policies.keys.include? config['ResponseHeadersPolicyId']
+            response_policy_safe = config['ResponseHeadersPolicyId'].gsub(/[-_.]/,"")
+            config['ResponseHeadersPolicyId'] = { "Ref" => "#{response_policy_safe}CloudFrontResponseHeadersPolicy" }
+          end
         else
           config.delete('ResponseHeadersPolicyId')
         end
@@ -299,9 +301,11 @@ CloudFormation do
             x.delete('OriginRequestPolicyId')
           end
           # What if the response headers policy not defined? - perform check
-          if (x.has_key?('ResponseHeadersPolicyId') and (!x['ResponseHeadersPolicyId'].nil?) and (response_headers_policies.keys.include? x['ResponseHeadersPolicyId']))
-            response_policy_safe = x['ResponseHeadersPolicyId'].gsub(/[-_.]/,"")
-            x['ResponseHeadersPolicyId'] = { "Ref" => "#{response_policy_safe}CloudFrontResponseHeadersPolicy" }
+          if (x.has_key?('ResponseHeadersPolicyId') and (!x['ResponseHeadersPolicyId'].nil?))
+            if response_headers_policies.keys.include? x['ResponseHeadersPolicyId']
+              response_policy_safe = x['ResponseHeadersPolicyId'].gsub(/[-_.]/,"")
+              x['ResponseHeadersPolicyId'] = { "Ref" => "#{response_policy_safe}CloudFrontResponseHeadersPolicy" }
+            end
           else
             x.delete('ResponseHeadersPolicyId')
           end
